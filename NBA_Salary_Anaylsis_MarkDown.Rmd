@@ -1,0 +1,187 @@
+---
+title: "NBA_Salary_Analysis"
+author:
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+EDA
+
+Create a function for cleaning dataset, because each dataset has the same variables associated with different observations.
+```{r cars}
+library(tidyverse)
+library(readxl)
+library(stringr)
+
+
+
+cleanData <- function(df){
+ 
+  df$NAME...25 <- str_remove_all(df$NAME...25,",.*")
+  df2 <- select(df,NAME...25,TEAM,SALARY)
+  df <- df[1:24]
+  #df <- mutate(df, "NAME" = df$NAME...1)
+  colnames(df)[colnames(df)=="NAME...1"] <- "NAME"
+
+  colnames(df2)[colnames(df2)=="NAME...25"] <- "NAME"
+
+  df$NAME <- str_remove_all(df$NAME,"[[:space:]]")
+  df2$NAME <- str_remove_all(df2$NAME,"[[:space:]]")
+
+  df$NAME <- str_remove_all(df$NAME,"ATL|BKN|BOS|CHA|CHI|CLE|DAL|DEN|DET|GSW|HOU|IND|LAC|LAL|MEM|MIA|MIL|MIN|NOP|NYK|OKC|OKC|ORL|PHI|PHX|POR|SAC|SAS|TOR|UTA|WAS|\\/")
+  dataset <- merge(by = "NAME",df2,df)
+  dataset2 <- dataset[,-25]
+  return (dataset2)
+}
+```
+
+Clean each dateset and merge all of them into the final dataset.
+```{r}
+df2018 <- read_excel("2018-2019 NBA salary.xlsx")
+df2017 <- read_excel("2017-2018 NBA salary.xlsx")
+df2016 <- read_excel("2016-2017 NBA salary.xlsx")
+df2015 <- read_excel("2015-2016 NBA salary.xlsx")
+df2014 <- read_excel("2014-2015 NBA salary.xlsx")
+df2013 <- read_excel("2013-2014 NBA salary.xlsx")
+df2012 <- read_excel("2012-2013 NBA salary.xlsx")
+df2011 <- read_excel("2011-2012 NBA salary.xlsx")
+df2010 <- read_excel("2010-2011 NBA salary.xlsx")
+df2009 <- read_excel("2009-2010 NBA salary.xlsx")
+df2008 <- read_excel("2008-2009 NBA salary.xlsx")
+
+dataset2018 <- cleanData(df2018)
+dataset2017 <- cleanData(df2017)
+dataset2016 <- cleanData(df2016)
+dataset2015 <- cleanData(df2015)
+dataset2014 <- cleanData(df2014)
+dataset2013 <- cleanData(df2013)
+dataset2012 <- cleanData(df2012)
+dataset2011 <- cleanData(df2011)
+dataset2010 <- cleanData(df2010)
+dataset2009 <- cleanData(df2009)
+dataset2008 <- cleanData(df2008)
+
+dataset2018 <- dataset2018 %>% mutate("Duration" = "2018-2019")
+dataset2017 <- dataset2017 %>% mutate("Duration" = "2017-2018")
+dataset2016 <- dataset2016 %>% mutate("Duration" = "2016-2017")
+dataset2015 <- dataset2015 %>% mutate("Duration" = "2015-2016")
+dataset2014 <- dataset2014 %>% mutate("Duration" = "2014-2015")
+dataset2013 <- dataset2013 %>% mutate("Duration" = "2013-2014")
+dataset2012 <- dataset2012 %>% mutate("Duration" = "2012-2013")
+dataset2011 <- dataset2011 %>% mutate("Duration" = "2011-2012")
+dataset2010 <- dataset2010 %>% mutate("Duration" = "2010-2011")
+dataset2009 <- dataset2009 %>% mutate("Duration" = "2009-2010")
+dataset2008 <- dataset2008 %>% mutate("Duration" = "2008-2009")
+
+Final_Dataset <- do.call("rbind", list(dataset2008, dataset2009, dataset2010, dataset2011, dataset2012, dataset2013, dataset2014, dataset2015, dataset2016,
+                                       dataset2017, dataset2018))
+Final_Dataset$SALARY <- as.numeric(Final_Dataset$SALARY)
+
+#write.csv(Final_Dataset,"Final_Dataset_of_NBA_Salary.csv", row.names = FALSE)
+
+#Final_Dataset <- rbind(datasetf2008,datasetf2009,dataset2010)
+write.csv(Final_Dataset,"Updated_2018_2019_NBA_Salary.csv", row.names = FALSE)
+#df <- read_excel("2018-2019 NBA salary.xlsx")
+
+
+```
+Check missling value
+```{r}
+Final_Dataset$SALARY[Final_Dataset$SALARY == 0] <- NA
+sum(is.na(Final_Dataset))
+```
+
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Barchart for each year salary.
+```{r}
+df1 <- tapply(Final_Dataset$SALARY, Final_Dataset$Duration, FUN=sum)
+df1 <- as.data.frame(df)
+
+df2 <- Final_Dataset  %>% 
+  group_by(Duration) %>% 
+  summarise(SALARY = mean(SALARY))
+df2$Duration <- as.numeric(str_remove_all(df2$Duration, "\\-.*"))
+
+df3 <- Final_Dataset  %>% 
+  group_by(Duration) %>% 
+  summarise(SALARY = sum(SALARY))
+df3$Duration <- as.numeric(str_remove_all(df3$Duration, "\\-.*"))
+
+
+
+#df1 <- Final_Dataset %>% mutate() 
+p1 <- ggplot(df2, aes(x=Duration, y=SALARY)) + geom_line() +
+  scale_x_continuous(breaks= seq(2008, 2018, by=1))
+p1
+ggplot(df3, aes(x=Duration, y=SALARY)) + geom_line() +
+  scale_x_continuous(breaks= seq(2008, 2018, by=1)) +
+  labs(title = "Total Salary YOY")
+
+
+
+```
+Heatmap for multiple variables
+
+```{r}
+#install.packages("corrplot")
+#source("http://www.sthda.com/upload/rquery_cormat.r")
+library(corrplot)
+#library("rquery")
+
+
+FD <- Final_Dataset[,-c(1,2,4)]
+FD$Duration <- as.numeric(str_remove_all(FD$Duration, "\\-.*"))
+write.csv(FD,"FD.csv", row.names = FALSE)
+#head(FD)
+cormat<- rquery.cormat(FD) #labs(title="Correlations With Multiple Variables")
+cormat
+#col<- colorRampPalette(c("white", "red"))(20)
+#heatmap(cormat, col=col, symm=TRUE) 
+```
+Coefficient and P-values with several multiple linear regression modles. 
+```{r}
+
+# Modle with all variables.
+Final_Dataset$Duration<-as.numeric(str_remove_all(Final_Dataset$Duration,"\\-.*"))
+model1 <- lm(SALARY~GP+MIN+PTS+FGM+FGA+`FG%`+`3PM`+`3PA`+`3P%`+FTM+FTA+`FT%`+REB+AST+STL+BLK+TO+DD2+TD3+PER+RK+Duration, data = Final_Dataset)
+summary(model1)
+
+# Modle with all variables except variable Duration.
+model2 <- lm(SALARY~GP+MIN+PTS+FGM+FGA+`FG%`+`3PM`+`3PA`+`3P%`+FTM+FTA+`FT%`+REB+AST+STL+BLK+TO+DD2+TD3+PER+RK, data = Final_Dataset)
+summary(model2)
+
+# Based on above p-value, build a model without 3P%, FTM, FTA, STL, RK:
+model3 <- lm(SALARY~GP+MIN+PTS+FGA+`FG%`+`3PM`+`3PA`+`FT%`+REB+AST+BLK+TO+DD2+TD3+PER, data = Final_Dataset)
+summary(model3)
+
+
+
+
+
+
+```
+Graph with GP,SALARY for 2018-2019
+```{r}
+FD2018 <- Final_Dataset[Final_Dataset[,26]=="2018-2019",]
+head(FD2018)
+ggplot(FD2018) + geom_point(aes(GP,SALARY))
+```
