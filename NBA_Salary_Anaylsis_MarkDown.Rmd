@@ -169,8 +169,8 @@ summary(model1)
 model2 <- lm(SALARY~GP+MIN+PTS+FGM+FGA+`FG%`+`3PM`+`3PA`+`3P%`+FTM+FTA+`FT%`+REB+AST+STL+BLK+TO+DD2+TD3+PER+RK, data = Final_Dataset)
 summary(model2)
 
-# Based on above p-value, build a model without 3P%, FTM, FTA, STL, RK:
-model3 <- lm(SALARY~GP+MIN+PTS+FGA+`FG%`+`3PM`+`3PA`+`FT%`+REB+AST+BLK+TO+DD2+TD3+PER, data = Final_Dataset)
+# Based on above p-value, build a model without PTS, FGM, 3PM, 3P%, FTM, FTA, MIN, STL, PER:
+model3 <- lm(SALARY~GP+FGA+`FG%`+`3PA`+`FT%`+REB+AST+BLK+TO+DD2+TD3+RK, data = Final_Dataset)
 summary(model3)
 
 
