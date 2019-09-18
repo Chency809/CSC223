@@ -1,5 +1,4 @@
 # server.R
-
 ui <- fluidPage(
   titlePanel("NBA Players' salaries from 2008 to 2018"),
   
@@ -81,11 +80,11 @@ server <- function(input, output) {
                     "PER" = Final_Dataset$PER,
                     "RK" = Final_Dataset$RK)
     
-    ydata <- switch(input$yvar, 
-                    "SALARY" = Final_Dataset$SALARY)
+   Salary <- switch(input$yvar,"SALARY" = Final_Dataset$SALARY)
     
-    ggplot(Final_Dataset, aes(x = xdata, y = ydata)) +
-      geom_point()
+    ggplot(Final_Dataset, aes(x = xdata, y = Salary)) +
+    geom_point()
+
   })
 }
 shinyApp(ui, server)
