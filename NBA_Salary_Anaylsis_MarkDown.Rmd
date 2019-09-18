@@ -1,6 +1,6 @@
 ---
 title: "NBA_Salary_Analysis"
-author:
+author: Albert, Chenx, Yuhong, Ziyu
 output: html_document
 ---
 
